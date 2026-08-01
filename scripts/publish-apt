@@ -39,7 +39,7 @@ latest_stable() {
 }
 
 latest_nightly() {
-	gh release view nightly --repo "$yazi_repository" --json targetCommitish,updatedAt --jq '[.targetCommitish, .updatedAt] | @tsv'
+	gh api "repos/$yazi_repository/releases/tags/nightly" --jq '[.target_commitish, .updated_at] | @tsv'
 }
 
 write_distributions() {
