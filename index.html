@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Official Yazi APT repository for Debian and Ubuntu." />
+    <title>Yazi APT repository</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: ui-sans-serif, system-ui, sans-serif;
+        line-height: 1.5;
+      }
+      body {
+        margin: 0;
+        background: light-dark(#fffdf8, #1c1b19);
+        color: light-dark(#25221e, #f0eee9);
+      }
+      main {
+        box-sizing: border-box;
+        margin: 0 auto;
+        max-width: 48rem;
+        padding: 5rem 1.5rem;
+      }
+      h1 { margin: 0; font-size: clamp(2rem, 6vw, 3.5rem); }
+      h2 { margin-top: 3rem; }
+      a { color: light-dark(#9a3412, #fb923c); }
+      pre {
+        overflow-x: auto;
+        padding: 1rem;
+        border-radius: .5rem;
+        background: light-dark(#f1ede5, #2a2926);
+      }
+      code { font-family: ui-monospace, SFMono-Regular, monospace; }
+      .links { display: flex; flex-wrap: wrap; gap: 1rem; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Yazi APT repository</h1>
+      <p>Official Debian and Ubuntu packages for Yazi, available for <code>amd64</code> and <code>arm64</code>.</p>
+
+      <h2>Install stable</h2>
+      <pre><code>curl -fsSL https://yazi-rs.github.io/builds/yazi-keyring.gpg | sudo tee /usr/share/keyrings/yazi-keyring.gpg &gt;/dev/null
+echo 'deb [signed-by=/usr/share/keyrings/yazi-keyring.gpg] https://yazi-rs.github.io/builds/ stable main' | sudo tee /etc/apt/sources.list.d/yazi.list &gt;/dev/null
+sudo apt update &amp;&amp; sudo apt install yazi</code></pre>
+
+      <h2>Install nightly</h2>
+      <pre><code>curl -fsSL https://yazi-rs.github.io/builds/yazi-keyring.gpg | sudo tee /usr/share/keyrings/yazi-keyring.gpg &gt;/dev/null
+echo 'deb [signed-by=/usr/share/keyrings/yazi-keyring.gpg] https://yazi-rs.github.io/builds/ nightly main' | sudo tee /etc/apt/sources.list.d/yazi-nightly.list &gt;/dev/null
+sudo apt update &amp;&amp; sudo apt install -t nightly yazi</code></pre>
+
+      <p class="links">
+        <a href="yazi-keyring.gpg">Signing key</a>
+        <a href="dists/stable/InRelease">Stable index</a>
+        <a href="dists/nightly/InRelease">Nightly index</a>
+        <a href="https://github.com/yazi-rs/builds">Source repository</a>
+      </p>
+    </main>
+  </body>
+</html>

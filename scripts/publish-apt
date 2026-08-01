@@ -114,4 +114,5 @@ reprepro -b "$repository" check
 rm -rf -- "$output"
 mkdir -p "$output"
 cp "$keyring" "$output/yazi-keyring.gpg"
+cp "$root/index.html" "$output"
 cp -a "$repository/dists" "$repository/pool" "$output"
