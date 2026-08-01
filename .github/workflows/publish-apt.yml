@@ -15,7 +15,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment: apt-production
+    environment: APT
     steps:
       - uses: actions/checkout@v7
 

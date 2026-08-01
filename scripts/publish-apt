@@ -30,7 +30,7 @@ if [[ ! -f "$keyring" ]]; then
 	exit 1
 fi
 
-mkdir -m 700 "$GNUPGHOME"
+chmod 700 "$GNUPGHOME"
 printf '%s' "${APT_SIGNING_KEY:?APT_SIGNING_KEY is required}" | gpg --batch --import
 gpg --batch --list-secret-keys "${APT_SIGNING_FINGERPRINT:?APT_SIGNING_FINGERPRINT is required}" >/dev/null
 
