@@ -40,15 +40,7 @@
       <h1>Yazi APT repository</h1>
       <p>Official Debian and Ubuntu packages for Yazi, available for <code>amd64</code> and <code>arm64</code>.</p>
 
-      <h2>Install stable</h2>
-      <pre><code>curl -fsSL https://yazi-rs.github.io/builds/yazi-keyring.gpg | sudo tee /usr/share/keyrings/yazi-keyring.gpg &gt;/dev/null
-echo 'deb [signed-by=/usr/share/keyrings/yazi-keyring.gpg] https://yazi-rs.github.io/builds/ stable main' | sudo tee /etc/apt/sources.list.d/yazi.list &gt;/dev/null
-sudo apt update &amp;&amp; sudo apt install yazi</code></pre>
-
-      <h2>Install nightly</h2>
-      <pre><code>curl -fsSL https://yazi-rs.github.io/builds/yazi-keyring.gpg | sudo tee /usr/share/keyrings/yazi-keyring.gpg &gt;/dev/null
-echo 'deb [signed-by=/usr/share/keyrings/yazi-keyring.gpg] https://yazi-rs.github.io/builds/ nightly main' | sudo tee /etc/apt/sources.list.d/yazi-nightly.list &gt;/dev/null
-sudo apt update &amp;&amp; sudo apt install -t nightly yazi</code></pre>
+      <p>See the <a href="https://yazi-rs.github.io/docs/installation#apt">installation guide</a> for stable and nightly setup instructions.</p>
 
       <p class="links">
         <a href="yazi-keyring.gpg">Signing key</a>
