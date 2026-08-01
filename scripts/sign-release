@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly release="$1"
+readonly inrelease="$2"
+readonly release_gpg="$3"
+readonly signer="${APT_SIGNING_FINGERPRINT:?APT_SIGNING_FINGERPRINT is required}!"
+readonly passphrase="${APT_SIGNING_PASSPHRASE:?APT_SIGNING_PASSPHRASE is required}"
+
+if [[ -n "$inrelease" ]]; then
+	gpg --batch --yes --pinentry-mode loopback --passphrase "$passphrase" \
+		--local-user "$signer" --digest-algo SHA512 --clearsign --output "$inrelease" "$release"
+fi
+
+if [[ -n "$release_gpg" ]]; then
+	gpg --batch --yes --pinentry-mode loopback --passphrase "$passphrase" \
+		--local-user "$signer" --digest-algo SHA512 --detach-sign --output "$release_gpg" "$release"
+fi

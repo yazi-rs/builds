@@ -1,0 +1,117 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly yazi_repository="sxyazi/yazi"
+
+if [[ $# -ne 1 ]]; then
+	echo "Usage: $0 <output-dir>" >&2
+	exit 1
+fi
+
+readonly root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+readonly keyring="$root/yazi-keyring.gpg"
+readonly output="$(realpath -m -- "$1")"
+readonly downloads="$(mktemp -d)"
+readonly repository="$(mktemp -d)"
+export GNUPGHOME="$(mktemp -d)"
+
+cleanup() {
+	rm -rf -- "$downloads" "$repository" "$GNUPGHOME"
+}
+trap cleanup EXIT
+
+if [[ "$output" == / || "$output" == "$root" ]]; then
+	echo "Refusing to replace $output" >&2
+	exit 1
+fi
+
+if [[ ! -f "$keyring" ]]; then
+	echo "Missing public key: $keyring" >&2
+	exit 1
+fi
+
+mkdir -m 700 "$GNUPGHOME"
+printf '%s' "${APT_SIGNING_KEY:?APT_SIGNING_KEY is required}" | gpg --batch --import
+gpg --batch --list-secret-keys "${APT_SIGNING_FINGERPRINT:?APT_SIGNING_FINGERPRINT is required}" >/dev/null
+
+latest_stable() {
+	gh release view --repo "$yazi_repository" --json tagName --jq '.tagName'
+}
+
+latest_nightly() {
+	gh release view nightly --repo "$yazi_repository" --json targetCommitish,updatedAt --jq '[.targetCommitish, .updatedAt] | @tsv'
+}
+
+write_distributions() {
+	mkdir -p "$repository/conf"
+	cat > "$repository/conf/distributions" <<EOF
+Codename: stable
+Suite: stable
+Components: main
+Architectures: amd64 arm64
+Origin: Yazi
+Label: Yazi
+Description: Yazi APT repository
+SignWith: ! $root/scripts/sign-release
+
+Codename: nightly
+Suite: nightly
+Components: main
+Architectures: amd64 arm64
+Origin: Yazi
+Label: Yazi
+Description: Yazi nightly APT repository
+NotAutomatic: yes
+ButAutomaticUpgrades: yes
+SignWith: ! $root/scripts/sign-release
+EOF
+}
+
+include_deb() {
+	local suite="$1" deb="$2" version
+	local temporary output_deb
+
+	if [[ "$suite" == "stable" ]]; then
+		reprepro -b "$repository" --export=never includedeb stable "$deb"
+		return
+	fi
+
+	version="$(dpkg-deb -f "$deb" Version)~nightly.$(date --utc --date="$nightly_published_at" +%Y%m%d%H%M%S)+g${nightly_sha:0:12}"
+	temporary="$(mktemp -d)"
+	output_deb="$temporary/yazi.deb"
+	dpkg-deb --raw-extract "$deb" "$temporary/root"
+	dpkg-deb --control "$deb" "$temporary/root/DEBIAN"
+	sed -i "s/^Version: .*/Version: $version/" "$temporary/root/DEBIAN/control"
+	dpkg-deb --build --root-owner-group "$temporary/root" "$output_deb"
+	reprepro -b "$repository" --export=never includedeb nightly "$output_deb"
+	rm -rf -- "$temporary"
+}
+
+include_release() {
+	local suite="$1" release_tag="$2"
+	local deb
+
+	gh release download "$release_tag" --repo "$yazi_repository" \
+		--pattern 'yazi-*-unknown-linux-musl.deb' --dir "$downloads/$suite"
+	for deb in "$downloads/$suite"/*.deb; do
+		[[ -e "$deb" ]] || {
+			echo "No musl Debian packages found for $release_tag" >&2
+			exit 1
+		}
+		include_deb "$suite" "$deb"
+	done
+}
+
+readonly stable_tag="$(latest_stable)"
+read -r nightly_sha nightly_published_at < <(latest_nightly)
+
+write_distributions
+include_release stable "$stable_tag"
+include_release nightly nightly
+reprepro -b "$repository" export
+reprepro -b "$repository" check
+
+rm -rf -- "$output"
+mkdir -p "$output"
+cp "$keyring" "$output/yazi-keyring.gpg"
+cp -a "$repository/dists" "$repository/pool" "$output"
